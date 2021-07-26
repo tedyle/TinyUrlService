@@ -23,15 +23,21 @@ namespace TinyUrlService.Repository
         }
 
 
-        public UrlKey GetByTinyUrl(string id) =>
-            _urlKeys.Find<UrlKey>(urlKey => urlKey.ShortUrl.Equals(id)).FirstOrDefault();
-
-        public UrlKey GetByUrl(string url) =>
-            _urlKeys.Find<UrlKey>(urlKey => urlKey.Uri.Equals(url)).FirstOrDefault();
-
-        public UrlKey Create(UrlKey urlKey)
+        public async Task<UrlKey> GetByTinyUrlAsync(string id)
         {
-            _urlKeys.InsertOne(urlKey);
+            var urlKeys = await _urlKeys.FindAsync<UrlKey>(urlKey => urlKey.ShortUrl.Equals(id));
+            return await urlKeys.FirstOrDefaultAsync();
+        }
+
+        public async Task<UrlKey> GetByUrlAsync(string url)
+        {
+            var urlKeys = await _urlKeys.FindAsync<UrlKey>(urlKey => urlKey.Uri.Equals(url));
+            return await urlKeys.FirstOrDefaultAsync();
+        }
+
+        public async Task<UrlKey> CreateAsync(UrlKey urlKey)
+        {
+            await _urlKeys.InsertOneAsync(urlKey);
             return urlKey;
         }
 

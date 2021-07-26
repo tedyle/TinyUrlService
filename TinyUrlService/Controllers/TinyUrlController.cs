@@ -28,7 +28,7 @@ namespace TinyUrlService.Controllers
         [Route("/{tinyUrl}")]
         public async Task<IActionResult> RedirectFromTinyUri(string tinyUrl)
         {
-            var url = _tinyUrlBL.GetUrlFromTinyUrl(tinyUrl);
+            var url = await _tinyUrlBL.GetUrlFromTinyUrl(tinyUrl);
 
             if (url != null)
                 return Redirect(url);
@@ -46,11 +46,10 @@ namespace TinyUrlService.Controllers
             if (!_tinyUrlBL.IsUrlValid(url, out string error, out Uri uri))
                 return BadRequest(error);
 
-            var tinyUrl = _tinyUrlBL.GenerateTinyUrlFromUrl
-                (uri.AbsoluteUri, out bool isCreated);
+            var tinyUrlAndIsCreated = await _tinyUrlBL.GenerateTinyUrlFromUrl(uri.AbsoluteUri);
 
-            var responseUri = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/{tinyUrl}";
-            if (isCreated)
+            var responseUri = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/{tinyUrlAndIsCreated.tinyUrl}";
+            if (tinyUrlAndIsCreated.isCreated)
                 return Created(responseUri, responseUri);
 
             return Ok(responseUri);   

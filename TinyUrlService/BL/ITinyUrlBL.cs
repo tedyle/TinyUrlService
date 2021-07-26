@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace TinyUrlService.BL
 {
     public interface ITinyUrlBL
     {
-        string GenerateTinyUrlFromUrl(string url, out bool isCreated);
+        Task<(string tinyUrl, bool isCreated)> GenerateTinyUrlFromUrl(string url);
         bool IsUrlValid(string url, out string error, out Uri uri);
-        string GetUrlFromTinyUrl(string tinyUrl);
+        Task<string> GetUrlFromTinyUrl(string tinyUrl);
     }
 }

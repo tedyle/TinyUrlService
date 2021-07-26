@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using TinyUrlService.Models;
 
 namespace TinyUrlService.Repository
 {
     public interface IUrlKeyRepository
     {
-        UrlKey Create(UrlKey urlKey);
+        Task<UrlKey> CreateAsync(UrlKey urlKey);
        
-        UrlKey GetByTinyUrl(string tinyUrl);
+        Task<UrlKey> GetByTinyUrlAsync(string tinyUrl);
 
-        UrlKey GetByUrl(string url);
+        Task<UrlKey> GetByUrlAsync(string url);
     }
 }

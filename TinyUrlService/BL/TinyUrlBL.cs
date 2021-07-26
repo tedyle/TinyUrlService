@@ -43,20 +43,20 @@ namespace TinyUrlService.BL
             return true;
         }
 
-        public string GetUrlFromTinyUrl(string tinyUrl)
+        public async Task<string> GetUrlFromTinyUrl(string tinyUrl)
         {
-            var url = GetUrlObjectByTinyUrl(tinyUrl);
+            var url = await GetUrlObjectByTinyUrl(tinyUrl);
 
             return url;
         }
 
-        private string GetUrlObjectByTinyUrl(string tinyUrl)
+        private async Task<string> GetUrlObjectByTinyUrl(string tinyUrl)
         {
             var url = GetUrlObjectByTinyUrlFromCache(tinyUrl);
 
             if (url == null)
             {
-                var urlKey = GetUrlObjectByTinyUrlFromRepository(tinyUrl);
+                var urlKey = await GetUrlObjectByTinyUrlFromRepository(tinyUrl);
                 if (urlKey == null)
                     return null;
 
@@ -67,9 +67,9 @@ namespace TinyUrlService.BL
             return url;
         }
 
-        private UrlKey GetUrlObjectByTinyUrlFromRepository(string tinyUrl)
+        private async Task<UrlKey> GetUrlObjectByTinyUrlFromRepository(string tinyUrl)
         {
-            return _urlKeyRepository.GetByTinyUrl(tinyUrl);
+            return await _urlKeyRepository.GetByTinyUrlAsync(tinyUrl);
         }
 
         private string GetUrlObjectByTinyUrlFromCache(string tinyUrl)
@@ -80,27 +80,27 @@ namespace TinyUrlService.BL
             return null;
         }
 
-        public string GenerateTinyUrlFromUrl(string url, out bool isCreated)
+        public async Task<(string tinyUrl, bool isCreated)> GenerateTinyUrlFromUrl(string url)
         {
-            isCreated = true;
+            bool isCreated = true;
 
-            var urlKey = GetTinyUrlObjectByUrlFromRepository(url);
+            var urlKey = await GetTinyUrlObjectByUrlFromRepository(url);
             if (urlKey != null)
             {
                 isCreated = false;
                 SaveTinyUrlObjectInCache(urlKey.ShortUrl, urlKey.Uri);
-                return urlKey.ShortUrl;
+                return (urlKey.ShortUrl, isCreated);
             }
 
-            string tinyUrl = CreateNewTinyUrl(url);
-            return tinyUrl;
+            string tinyUrl = await CreateNewTinyUrl(url);
+            return (tinyUrl, isCreated);
         }
 
-        private string CreateNewTinyUrl(string url)
+        private async Task<string> CreateNewTinyUrl(string url)
         {
             var tinyUrl = GenerateTinyUrl(url);
 
-            SaveTinyUrlObject(new UrlKey
+            await SaveTinyUrlObject(new UrlKey
             {
                 ShortUrl = tinyUrl,
                 Uri = url
@@ -108,9 +108,9 @@ namespace TinyUrlService.BL
             return tinyUrl;
         }
 
-        private void SaveTinyUrlObject(UrlKey urlKey)
+        private async Task SaveTinyUrlObject(UrlKey urlKey)
         {
-            SaveTinyUrlObjectInRepository(urlKey);
+            await SaveTinyUrlObjectInRepository(urlKey);
             SaveTinyUrlObjectInCache(urlKey.ShortUrl, urlKey.Uri);
         }
 
@@ -123,19 +123,19 @@ namespace TinyUrlService.BL
             }
         }
 
-        private void SaveTinyUrlObjectInRepository(UrlKey urlKey)
+        private async Task SaveTinyUrlObjectInRepository(UrlKey urlKey)
         {
-            string lala;
+            string error;
 
-            var tinyUrlObject = _urlKeyRepository.Create(urlKey);
+            var tinyUrlObject = await _urlKeyRepository.CreateAsync(urlKey);
             if (tinyUrlObject == null)
-                lala = "send exception";
+                error = "throw exception"; //TODO: throw Mongo Exception - DB not responding
 
         }
 
-        private UrlKey GetTinyUrlObjectByUrlFromRepository(string url)
+        private async Task<UrlKey> GetTinyUrlObjectByUrlFromRepository(string url)
         {
-            return _urlKeyRepository.GetByUrl(url);
+            return await _urlKeyRepository.GetByUrlAsync(url);
         }
 
 

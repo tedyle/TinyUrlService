@@ -33,28 +33,9 @@ namespace TinyUrlService
         public void ConfigureServices(IServiceCollection services)
         {
             // requires using Microsoft.Extensions.Options
-            services.Configure<ShortUriDatabaseSettings>(
-                Configuration.GetSection(nameof(ShortUriDatabaseSettings)));
+            services.AddConfiguration(Configuration);
 
-            services.AddSingleton<IShortUriDatabaseSettings>(sp =>
-                sp.GetRequiredService<IOptions<ShortUriDatabaseSettings>>().Value);
-
-            services.AddSingleton<ITinyUrlBL, TinyUrlBL>();
-            services.AddSingleton<IUrlShorterner, UrlShorterner>();
-            services.AddSingleton<IUrlKeyRepository, UrlKeyRepository>();
-            /*services.AddDistributedMemoryCache(setup =>
-            {
-                setup.SizeLimit = 1024;
-            });*/
-
-            var config = new NameValueCollection();
-            config.Add("pollingInterval", "00:05:00");
-            config.Add("physicalMemoryLimitPercentage", "0");
-            config.Add("cacheMemoryLimitMegabytes", "10");
-
-            var memoryCache = new MemoryCache("TinyUrlCache", config);
-
-            services.AddSingleton<MemoryCache>(memoryCache);
+            services.AddSingletons();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

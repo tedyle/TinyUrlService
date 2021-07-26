@@ -22,8 +22,6 @@ namespace TinyUrlService.Repository
             _urlKeys = database.GetCollection<UrlKey>(settings.ShortUriCollectionName);
         }
 
-        public List<UrlKey> Get() =>
-            _urlKeys.Find(urlkey => true).ToList();
 
         public UrlKey GetByTinyUrl(string id) =>
             _urlKeys.Find<UrlKey>(urlKey => urlKey.ShortUrl.Equals(id)).FirstOrDefault();
@@ -37,13 +35,5 @@ namespace TinyUrlService.Repository
             return urlKey;
         }
 
-        public void Update(string id, UrlKey urlKey) =>
-            _urlKeys.ReplaceOne(shortUri => shortUri.ShortUrl == id, urlKey);
-
-        public void Remove(UrlKey urlKey) =>
-            _urlKeys.DeleteOne(urlKey => urlKey.ShortUrl == urlKey.ShortUrl);
-
-        public void Remove(string id) =>
-            _urlKeys.DeleteOne(urlKey => urlKey.ShortUrl == id);
     }
 }

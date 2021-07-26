@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
@@ -14,31 +15,39 @@ namespace TinyUrlService.BL
         public readonly IUrlShorterner _urlShorterner;
         public readonly MemoryCache _cache;
         public readonly IUrlKeyRepository _urlKeyRepository;
+        private readonly ILogger<TinyUrlBL> _logger;
 
         public TinyUrlBL(IUrlKeyRepository urlKeyRepository,
             MemoryCache cache,
-            IUrlShorterner urlShorterner)
+            IUrlShorterner urlShorterner,
+            ILogger<TinyUrlBL> logger)
         {
             _urlShorterner = urlShorterner;
             _cache = cache;
             _urlKeyRepository = urlKeyRepository;
+            _logger = logger;
         }
 
         public bool IsUrlValid(string url, out string error, out Uri uri)
         {
+            _logger.LogInformation($"Begin Validating {url}");
             error = "";
 
             if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
             {
-                error = "Url Not Valid";
+                error = $"{url} Not Valid";
+                _logger.LogInformation(error);
                 return false;
             }
 
             if (url.Length > 200)
             {
-                error = "Url must be under 200 letters";
+                error = $"{url} must be under 200 letters";
+                _logger.LogInformation(error);
                 return false;
             }
+
+            _logger.LogInformation($"Success Validating {url}");
 
             return true;
         }
@@ -118,6 +127,7 @@ namespace TinyUrlService.BL
         {
             if (!_cache.Contains(tinyUrl))
             {
+                _logger.LogInformation($"Saving {tinyUrl} in cache");
                 CacheItemPolicy cacheItemPolicy = new();
                 _cache.Set(tinyUrl, url, DateTimeOffset.Now.AddMinutes(60));
             }
@@ -141,6 +151,7 @@ namespace TinyUrlService.BL
 
         private string GenerateTinyUrl(string url)
         {
+            _logger.LogInformation($"Generating tinyUrl for {url}");
             return _urlShorterner.GetUrlChunk(url.GetHashCode());
         }
     }

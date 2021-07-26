@@ -16,5 +16,10 @@ namespace TinyUrlService.Models
         public string ShortUrl { get; set; }
         [BsonElement("Uri")]
         public string Uri { get; set; }
+
+        public override string ToString()
+        {
+            return $"Short Uri: {ShortUrl}, Uri: {Uri}";
+        }
     }
 }

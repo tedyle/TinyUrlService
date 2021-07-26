@@ -43,10 +43,11 @@ namespace TinyUrlService.Controllers
         {
             url = url.Replace("%2F", "/");
 
-            if (!_tinyUrlBL.IsUrlValid(url, out string error))
+            if (!_tinyUrlBL.IsUrlValid(url, out string error, out Uri uri))
                 return BadRequest(error);
 
-            var tinyUrl = _tinyUrlBL.GenerateTinyUrlFromUrl(url, out bool isCreated);
+            var tinyUrl = _tinyUrlBL.GenerateTinyUrlFromUrl
+                (uri.AbsoluteUri, out bool isCreated);
 
             var responseUri = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/{tinyUrl}";
             if (isCreated)

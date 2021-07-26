@@ -24,11 +24,11 @@ namespace TinyUrlService.BL
             _urlKeyRepository = urlKeyRepository;
         }
 
-        public bool IsUrlValid(string url, out string error)
+        public bool IsUrlValid(string url, out string error, out Uri uri)
         {
             error = "";
 
-            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
             {
                 error = "Url Not Valid";
                 return false;
@@ -56,36 +56,43 @@ namespace TinyUrlService.BL
 
             if (url == null)
             {
-                url = GetUrlObjectByTinyUrlFromRepository(tinyUrl);
+                var urlKey = GetUrlObjectByTinyUrlFromRepository(tinyUrl);
+                if (urlKey == null)
+                    return null;
+
+                url = urlKey.Uri;
                 Task.Run(() => SaveTinyUrlObjectInCache(tinyUrl, url));
             }
             
             return url;
         }
 
-        private string GetUrlObjectByTinyUrlFromRepository(string tinyUrl)
+        private UrlKey GetUrlObjectByTinyUrlFromRepository(string tinyUrl)
         {
-            throw new NotImplementedException();
+            return _urlKeyRepository.GetByTinyUrl(tinyUrl);
         }
 
         private string GetUrlObjectByTinyUrlFromCache(string tinyUrl)
         {
-            return _cache.Get(tinyUrl).ToString();
+            if(_cache.Contains(tinyUrl))
+                return _cache.Get(tinyUrl).ToString();
+
+            return null;
         }
 
         public string GenerateTinyUrlFromUrl(string url, out bool isCreated)
         {
             isCreated = true;
 
-            var shortUri = GetTinyUrlObjectByUrl(url);
-            if (shortUri != null)
+            var urlKey = GetTinyUrlObjectByUrlFromRepository(url);
+            if (urlKey != null)
             {
                 isCreated = false;
-                return shortUri.ShortUrl;
+                SaveTinyUrlObjectInCache(urlKey.ShortUrl, urlKey.Uri);
+                return urlKey.ShortUrl;
             }
 
             string tinyUrl = CreateNewTinyUrl(url);
-
             return tinyUrl;
         }
 
@@ -109,9 +116,11 @@ namespace TinyUrlService.BL
 
         private void SaveTinyUrlObjectInCache(string tinyUrl, string url)
         {
-            CacheItemPolicy cacheItemPolicy = new();
-
-            _cache.Set(tinyUrl, url, DateTimeOffset.Now.AddMinutes(60));
+            if (!_cache.Contains(tinyUrl))
+            {
+                CacheItemPolicy cacheItemPolicy = new();
+                _cache.Set(tinyUrl, url, DateTimeOffset.Now.AddMinutes(60));
+            }
         }
 
         private void SaveTinyUrlObjectInRepository(UrlKey urlKey)
@@ -124,7 +133,7 @@ namespace TinyUrlService.BL
 
         }
 
-        private UrlKey GetTinyUrlObjectByUrl(string url)
+        private UrlKey GetTinyUrlObjectByUrlFromRepository(string url)
         {
             return _urlKeyRepository.GetByUrl(url);
         }

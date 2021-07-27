@@ -16,7 +16,7 @@ namespace TinyUrlService.Configuration
 {
     public static class StartupExtensionMethods
     {
-        public static void AddSingletons(this IServiceCollection services)
+        public static void AddSingletons(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IShortUriDatabaseSettings>(sp =>
                sp.GetRequiredService<IOptions<ShortUriDatabaseSettings>>().Value);
@@ -24,7 +24,7 @@ namespace TinyUrlService.Configuration
             services.AddSingleton<ITinyUrlBL, TinyUrlBL>();
             services.AddSingleton<IUrlShorterner, UrlShorterner>();
             services.AddSingleton<IUrlKeyRepository, UrlKeyRepository>();
-            AddCache(services);
+            AddCache(services, configuration);
         }
 
         public static void AddConfiguration(this IServiceCollection services,
@@ -34,12 +34,14 @@ namespace TinyUrlService.Configuration
                 configuration.GetSection(nameof(ShortUriDatabaseSettings)));
         }
 
-        private static void AddCache(IServiceCollection services)
+        private static void AddCache(IServiceCollection services,
+            IConfiguration configuration)
         {
             var config = new NameValueCollection();
-            config.Add("pollingInterval", "00:05:00");
-            config.Add("physicalMemoryLimitPercentage", "0");
-            config.Add("cacheMemoryLimitMegabytes", "10");
+            config.Add("pollingInterval", configuration["Cache:pollingInterval"]);
+            config.Add("physicalMemoryLimitPercentage",
+                configuration["Cache:physicalMemoryLimitPercentage"]);
+            config.Add("cacheMemoryLimitMegabytes", configuration["Cache:cacheMemoryLimitMegabytes"]);
 
             var memoryCache = new MemoryCache("TinyUrlCache", config);
 

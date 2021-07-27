@@ -35,7 +35,7 @@ namespace TinyUrlService
             // requires using Microsoft.Extensions.Options
             services.AddConfiguration(Configuration);
 
-            services.AddSingletons();
+            services.AddSingletons(Configuration);
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
